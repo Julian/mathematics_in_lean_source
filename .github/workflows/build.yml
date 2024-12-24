@@ -16,7 +16,20 @@ jobs:
           ./elan-init -y --default-toolchain none
           echo "$HOME/.elan/bin" >> $GITHUB_PATH
 
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
+
+      - uses: astral-sh/setup-uv@v5
+      # the Makefile runs scripts/mkall.py and searches PATH for python
+      - run: |
+          uv run --script --with-requirements scripts/requirements.txt scripts/mkall.py
+          mkdir output
+          uv run --with-requirements scripts/requirements.txt sphinx-build -b html source output/html
+          uv run --with-requirements scripts/requirements.txt sphinx-build -b man source output/man
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: output
+          path: output
 
       - name: update MIL.lean
         run: |
